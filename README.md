@@ -124,6 +124,7 @@ Tính trọng số cho lớp dương (positive class):
 $$w_{pos} = \frac{N_{neg}}{N_{pos}}$$
 
 Áp dụng trọng số cho từng mẫu:
+
 $$
 w_{sample} = \begin{cases} 
 w_{pos} & \text{if } y = 1 \\
