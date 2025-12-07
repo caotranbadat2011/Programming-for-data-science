@@ -141,7 +141,7 @@ This forces the model to pay more attention to fraud samples.
 
 #### Prediction Function
 
-$$\hat{y} = \text{sigmoid}(w^T x)$$
+$$\hat{y} = \sigma(w^T x)$$
 
 $$\text{sigmoid}(z) = \frac{1}{1 + e^{-z}}$$
 
@@ -170,9 +170,9 @@ Below is a detailed breakdown of how each component is implemented:
 Logistic Regression requires a bias term \(b\).  
 Instead of treating it separately, we augment the feature matrix:
 
-```
+$$
 X' = [1 \;\; X]
-```
+$$
 
 NumPy implementation:
 
@@ -192,3 +192,254 @@ def sigmoid(self, z):
     z = np.clip(z, -30, 30)
     return 1 / (1 + np.exp(-z))
 ```
+
+#### **(3) Linear Model Output**
+
+Prediction before activation:
+
+```
+z = X.dot(self.w)
+preds = self.sigmoid(z)
+```
+
+#### **(4) Weighted Binary Cross-Entropy Loss**
+
+To address class imbalance, each sample receives a weight $w_i$.
+
+Loss function:
+
+$$L = - \sum_{i=1}^{N} w_i \left[ y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right]$$
+
+Gradient preparation:
+
+```
+error = preds - y
+weighted_error = error * sample_weights
+```
+
+(5) Gradient Computation (Vectorized)
+
+Gradient of logistic loss:
+
+$$
+\nabla L = X^T (w_i (\hat{y} - y))
+$$
+
+NumPy:
+
+```
+grad = X.T.dot(weighted_error) / n_samples
+```
+#### **(6) L2 Regularization**
+
+Regularization term:
+
+$$\nabla L_{reg} = \lambda w$$
+
+Implementation:
+
+```
+grad += self.reg_lambda * self.w
+```
+
+#### **(7) Gradient Descent Weight Update**
+
+The update rule:
+
+$$w := w - \eta \cdot \nabla_w L$$
+
+NumPy:
+
+```
+self.w -= self.lr * grad
+```
+
+#### **(8) Training Loop (Vectorized Optimization)**
+
+```
+for epoch in range(self.epochs):
+    preds = self.sigmoid(X.dot(self.w))
+    error = preds - y
+    grad = X.T.dot(error * sample_weights) / n_samples
+    self.w -= self.lr * grad
+```
+
+Vectorization ensures:
+
+- No Python loops over samples
+- Faster training on 284,000+ rows
+
+#### **(9) Prediction Methods**
+
+Predict probabilities:
+
+$$
+\hat{y} = \sigma(w^T X)
+$$
+
+```
+def predict_proba(self, X):
+    X = self._add_intercept(X)
+    return self.sigmoid(X.dot(self.w))
+```
+
+Predict class with adjustable threshold:
+
+```
+def predict(self, X, threshold=0.5):
+    return (self.predict_proba(X) >= threshold).astype(int)
+```
+
+This enables recall-oriented or precision-oriented tuning.
+
+---
+
+## 🛠️ Installation & Setup
+
+#### **1. Clone and access folder**
+
+```
+git clone <https://github.com/caotranbadat2011/Programming-for-data-science.git>
+cd Programming-for-data-science
+```
+
+#### **2. Create a virtual environment (recommended)**
+
+```
+python -m venv venv
+source venv/bin/activate      # Linux & macOS
+```
+
+or
+
+```
+python -m venv venv
+venv\Scripts\activate         # Windows
+```
+
+#### **3. Install required packages**
+
+```
+pip install -r requirements.txt
+```
+
+#### **4. Download dataset**
+Dataset must be downloaded manually from Kaggle due to its large size:
+
+- Download directly from the following link https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud or the link in the file `./data/raw/link_data.txt`
+
+- After downloading, unzip and open the folder, get the `creditcard.csv` file and move it to the `./data/raw folder`
+
+## ▶️ Usage
+
+#### **Step 1:** 
+
+Press `Restart` to restart kernel and select newly created kernel. Then press `Run all` of `jupyter notebook` to run `01_data_exploration.ipynb` file to analyze data exploration.
+
+#### **Step 2:** 
+
+Press `Run all` of `jupyter notebook` to run file `02_preprocessing.ipynb` to preprocess the data and the result of this file will create a data file prepared for the model step.
+
+This generates:
+`./data/processed/creditcard_preprocessed.npz`
+
+#### **Step 3:** 
+Press `Run all` of `jupyter notebook` to run file 02 `03_preprocessing.ipynb` to run the model for the preprocessed data file.
+
+## 📈 Results
+
+**Model Performance:**
+
+- Accuracy: 97.78%
+
+- Precision: 7.12%
+
+- Recall: 90.56%
+
+- F1 Score: 13.20%
+
+**Interpretation:**
+
+- High recall → successfully detects most fraud cases
+
+- Precision is naturally low because fraud is extremely rare
+
+- Accuracy is realistic and not inflated by imbalance
+
+- Overall good performance for a NumPy-only Logistic Regression model
+
+**Confusion Matrix:**
+
+
+![matrix model](./results/output.png)
+
+## 📁 Project Structure
+
+```
+project/
+│
+├── data/
+│ ├── raw/
+│ │ └── link_data.txt # Link to Kaggle dataset (raw data too large to include)
+│ │
+│ └── processed/ # Saved preprocessed .npz file
+│
+├── notebooks/
+│ ├── 01_data_exploration.ipynb # Exploratory Data Analysis (EDA)
+│ ├── 02_preprocessing.ipynb # Data cleaning, clipping, scaling, saving .npz
+│ └── 03_modeling.ipynb # Logistic Regression implemented using NumPy
+│
+├── results/
+│ └── output.png # Visualization / Confusion matrix output
+│
+├── README.md # Project documentation
+└── requirements.txt # Python dependencies
+```
+
+## ⚠️ Challenges & Solutions
+
+#### **1. Severe Class Imbalance**
+
+- Fraud cases extremely rare
+
+- Solution: Class weighting using (#negative / #positive)
+
+#### **2. Sigmoid Overflow from Large Amount Values**
+
+Solution:
+
+- Outlier clipping
+
+- Z-score normalization
+
+- Safe sigmoid using np.clip
+
+#### **3. No scikit-learn Allowed**
+
+Solution:
+
+- Fully vectorized gradient descent
+
+- Manual logistic regression implementation
+
+- Custom evaluation metrics
+
+## 🚀 Future Improvements
+
+- Add L1 regularization (feature selection)
+
+- Tune classification threshold for best F1
+
+- Compare with tree-based models (RandomForest, XGBoost)
+
+- Add SMOTE or ADASYN for boosting precision
+
+## 👨‍💻 Contributors
+
+- Name: Cao Trần Bá Đạt
+- Github: caotranbadat2011
+- Email: ctbdat23@clc.fitus.edu.vn
+
+## 📄 License
+
+- This dataset is freely available for exploitation through [License](https://opendatacommons.org/licenses/dbcl/1-0/)
