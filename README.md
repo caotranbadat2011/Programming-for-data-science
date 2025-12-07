@@ -136,3 +136,59 @@ $$
 This forces the model to pay more attention to fraud samples.
 
 ---
+
+### 2. Logistic Regression Algorithm
+
+#### Prediction Function
+
+$$\hat{y} = \text{sigmoid}(w^T x)$$
+
+$$\text{sigmoid}(z) = \frac{1}{1 + e^{-z}}$$
+
+#### Binary Cross-Entropy Loss
+
+$$L = - \sum_{i=1}^{N} w_i \left[ y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right]$$
+
+#### Gradient Descent Update
+
+$$w := w - \eta \cdot \nabla_w L$$
+
+#### L2 Regularization
+
+$$\text{gradient} \mathrel{+}= \lambda w$$
+
+In this project, Logistic Regression is implemented **entirely from scratch** using NumPy, without relying on scikit-learn.  
+The implementation follows the mathematical formulation of logistic regression and uses optimized vectorized operations for efficiency.
+
+Below is a detailed breakdown of how each component is implemented:
+
+---
+
+### 3. NumPy Implementation (Full Explanation)
+
+#### **(1) Adding an Intercept Term**
+Logistic Regression requires a bias term \(b\).  
+Instead of treating it separately, we augment the feature matrix:
+
+```
+X' = [1 \;\; X]
+```
+
+NumPy implementation:
+
+```
+X = np.hstack([np.ones((X.shape[0], 1)), X])
+```
+
+#### **(2) Sigmoid Function with Overflow Protection**
+The logistic function is:
+
+$$\text{sigmoid}(z) = \frac{1}{1 + e^{-z}}$$
+
+Large values of $z$ can cause overflow, so we clip:
+
+```
+def sigmoid(self, z):
+    z = np.clip(z, -30, 30)
+    return 1 / (1 + np.exp(-z))
+```
