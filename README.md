@@ -101,13 +101,13 @@ The EDA step guided the design of the preprocessing pipeline.
 #### (b) Outlier Processing (Amount Only)
 `Amount` is clipped between the 1st and 99th percentiles to reduce extreme values: 
 
-`x = min(max(x, P1), P99)`
+$x = min(max(x, P1), P99)$
 
 This ensures stable gradient computation during training.
 
 #### (c) Feature Standardization (Z-score Normalization)
 
-`X_scaled = (X - mean) / std`
+$X_scaled = (X - mean) / std$
 
 
 Ensures stable gradient descent and prevents sigmoid overflow.
@@ -120,10 +120,10 @@ Ensures stable gradient descent and prevents sigmoid overflow.
 #### (e) Class Weighting
 To handle imbalance:
 
-`
+$
 pos_weight = (#negative samples) / (#positive samples)
 sample_weight = pos_weight if y == 1 else 1
-`
+$
 
 This forces the model to pay more attention to fraud samples.
 
