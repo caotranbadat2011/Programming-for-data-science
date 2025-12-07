@@ -107,7 +107,7 @@ This ensures stable gradient computation during training.
 
 #### (c) Feature Standardization (Z-score Normalization)
 
-$X_scaled = (X - mean) / std$
+$$X_{scaled} = \frac{X - \mu}{\sigma}$$
 
 
 Ensures stable gradient descent and prevents sigmoid overflow.
