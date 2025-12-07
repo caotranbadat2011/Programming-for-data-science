@@ -101,8 +101,9 @@ The EDA step guided the design of the preprocessing pipeline.
 #### (b) Outlier Processing (Amount Only)
 `Amount` is clipped between the 1st and 99th percentiles to reduce extreme values: 
 
-```python
+```markdown
 x = min(max(x, P1), P99)
+
 
 This ensures stable gradient computation during training.
 
