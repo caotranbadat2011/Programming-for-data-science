@@ -101,7 +101,7 @@ The EDA step guided the design of the preprocessing pipeline.
 #### (b) Outlier Processing (Amount Only)
 `Amount` is clipped between the 1st and 99th percentiles to reduce extreme values: 
 
-$x = min(max(x, P1), P99)$
+$$x = min(max(x, P1), P99)$$
 
 This ensures stable gradient computation during training.
 
@@ -120,10 +120,16 @@ Ensures stable gradient descent and prevents sigmoid overflow.
 #### (e) Class Weighting
 To handle imbalance:
 
-$
-pos_weight = (#negative samples) / (#positive samples)
-sample_weight = pos_weight if y == 1 else 1
-$
+Tính trọng số cho lớp dương (positive class):
+$$w_{pos} = \frac{N_{neg}}{N_{pos}}$$
+
+Áp dụng trọng số cho từng mẫu:
+$$
+w_{sample} = \begin{cases} 
+w_{pos} & \text{if } y = 1 \\
+1 & \text{if } y = 0 
+\end{cases}
+$$
 
 This forces the model to pay more attention to fraud samples.
 
